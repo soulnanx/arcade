@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Water Sort Puzzle</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1e1e24">
+</head>
+<body>
+  <header class="game-header">
+    <div class="level-info">
+      <h1>Fase <span id="level-display">1</span></h1>
+    </div>
+    <div class="header-controls">
+      <button id="btn-sound" class="btn-icon" aria-label="Alternar Som" title="Alternar Som">🔊</button>
+      <button id="btn-undo" class="btn" aria-label="Desfazer movimento">Desfazer</button>
+      <button id="btn-restart" class="btn" aria-label="Reiniciar fase">Reiniciar</button>
+      <button id="btn-new-game" class="btn btn-primary" aria-label="Nova fase">Nova Fase</button>
+    </div>
+  </header>
+
+  <main class="game-board" id="board" role="region" aria-label="Tabuleiro de Tubos"></main>
+
+  <!-- Modal de Vitória -->
+  <div id="win-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="win-title">
+    <div class="modal-content">
+      <h2 id="win-title">Fase Concluída!</h2>
+      <p>Todos os tubos foram perfeitamente organizados.</p>
+      <button id="btn-next-level" class="btn btn-primary btn-large">Próxima Fase</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
