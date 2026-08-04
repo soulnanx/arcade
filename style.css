@@ -196,45 +196,6 @@ h1 {
   75% { transform: translateX(6px); }
 }
 
-/* Animação de despejo (Opção A): tubo origem inclina e despeja */
-.tube.pouring {
-  z-index: 5;
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-/* Inclina para a direita (destino à direita) */
-.tube.pour-right {
-  transform-origin: bottom left;
-  transform: rotate(38deg) translateY(-6px);
-}
-
-/* Inclina para a esquerda (destino à esquerda) */
-.tube.pour-left {
-  transform-origin: bottom right;
-  transform: rotate(-38deg) translateY(-6px);
-}
-
-/* Filete de líquido conectando os tubos */
-.pour-stream {
-  position: fixed;
-  height: 7px;
-  border-radius: 0 0 4px 4px;
-  transform-origin: left center;
-  transform: rotate(var(--angle));
-  z-index: 4;
-  pointer-events: none;
-  opacity: 0;
-  box-shadow: 0 0 6px rgba(255, 255, 255, 0.25);
-  animation: streamFlow 0.34s ease forwards;
-}
-
-@keyframes streamFlow {
-  0% { opacity: 0; clip-path: inset(0 100% 0 0); }
-  30% { opacity: 1; clip-path: inset(0 0 0 0); }
-  85% { opacity: 1; clip-path: inset(0 0 0 0); }
-  100% { opacity: 0; clip-path: inset(0 0 0 100%); }
-}
-
 /* Segmentos de Líquido */
 .liquid-layer {
   width: 100%;
