@@ -301,7 +301,15 @@ class WaterSortGame {
     // Calcular movimentos ótimos (aproximação)
     this.optimalMoves = this.estimateOptimalMoves();
     
-    this.render();
+    // Transição de fase (fade-out/in)
+    const board = this.dom.board;
+    board.classList.remove('board-enter');
+    board.classList.add('board-exit');
+    setTimeout(() => {
+      this.render();
+      board.classList.remove('board-exit');
+      board.classList.add('board-enter');
+    }, 180);
     this.updateMovementCounter();
   }
 
@@ -377,6 +385,12 @@ class WaterSortGame {
     this.movementCount++;
     this.updateMovementCounter();
     this.sound.pour();
+    // Vibração leve ao derramar
+    if (typeof PerformanceManager !== 'undefined') {
+      PerformanceManager.vibrate(15);
+    }
+    // Guarda o destino para animar apos o render do handleTubeClick
+    this._lastPouredDest = destinoIndex;
     return true;
   }
 
@@ -385,6 +399,9 @@ class WaterSortGame {
       if (this.tubes[index].length > 0) {
         this.selectedTubeIndex = index;
         this.sound.click();
+        if (typeof PerformanceManager !== 'undefined') {
+          PerformanceManager.vibrate(12);
+        }
       }
     } else {
       if (this.selectedTubeIndex === index) {
@@ -396,6 +413,17 @@ class WaterSortGame {
         this.selectedTubeIndex = null;
         this.checkWinCondition();
       } else {
+        // Movimento inválido: shake no tubo de destino + vibração
+        if (typeof PerformanceManager !== 'undefined') {
+          PerformanceManager.vibrate([20, 30, 20]);
+        }
+        const board = this.dom.board;
+        const tubeEl = board.children[index];
+        if (tubeEl) {
+          tubeEl.classList.remove('invalid-select');
+          void tubeEl.offsetWidth; // reflow para reiniciar animação
+          tubeEl.classList.add('invalid-select');
+        }
         // Altera seleção se o novo tubo não for vazio
         if (this.tubes[index].length > 0) {
           this.selectedTubeIndex = index;
@@ -406,6 +434,16 @@ class WaterSortGame {
       }
     }
     this.render();
+    // Animação 'splash' na camada superior do tubo que recebeu líquido
+    if (typeof this._lastPouredDest === 'number') {
+      const destEl = this.dom.board.children[this._lastPouredDest];
+      if (destEl) {
+        const layers = destEl.querySelectorAll('.liquid-layer');
+        const top = layers[layers.length - 1];
+        if (top) top.classList.add('pour-in');
+      }
+      this._lastPouredDest = null;
+    }
   }
 
   undo() {
@@ -456,6 +494,11 @@ class WaterSortGame {
     if (isWon) {
       this.sound.win();
       
+      // Vibração de vitória (padrão celebratório)
+      if (typeof PerformanceManager !== 'undefined') {
+        PerformanceManager.vibratePattern([30, 50, 30, 50, 60]);
+      }
+      
       // Calcular stars
       const stars = this.calculateStars();
       
@@ -467,10 +510,39 @@ class WaterSortGame {
         this.optimalMoves
       );
 
+      // Confete (CSS puro)
+      this.launchConfetti(stars);
+
       setTimeout(() => {
         this.showWinModal(stars);
       }, 300);
     }
+  }
+
+  /**
+   * Lançar confete em CSS puro (sem libs)
+   * @param {number} stars - quantidade de estrelas (afeta intensidade)
+   */
+  launchConfetti(stars) {
+    const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#FFD700'];
+    const count = 40 + (stars || 0) * 20;
+    const fragment = document.createDocumentFragment();
+    for (let i = 0; i < count; i++) {
+      const piece = document.createElement('div');
+      piece.className = 'confetti';
+      piece.style.left = Math.random() * 100 + 'vw';
+      piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+      const duration = 2.2 + Math.random() * 1.8;
+      piece.style.animationDuration = duration + 's';
+      piece.style.animationDelay = (Math.random() * 0.4) + 's';
+      const scale = 0.7 + Math.random() * 0.8;
+      piece.style.transform = 'scale(' + scale + ')';
+      fragment.appendChild(piece);
+    }
+    document.body.appendChild(fragment);
+    setTimeout(() => {
+      document.querySelectorAll('.confetti').forEach(el => el.remove());
+    }, 4800);
   }
 
   /**
