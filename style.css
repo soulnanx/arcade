@@ -420,6 +420,23 @@ body.cb-mode .color-6 { background-image: repeating-linear-gradient(0deg, #06B6D
   margin-bottom: 12px;
 }
 
+.menu-version {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-color);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  padding: 4px 12px;
+  margin-bottom: 16px;
+  letter-spacing: 0.5px;
+}
+
+[data-theme="light"] .menu-version {
+  color: #475569;
+}
+
 .menu-stats {
   display: flex;
   justify-content: center;
@@ -697,6 +714,13 @@ body.cb-mode .color-6 { background-image: repeating-linear-gradient(0deg, #06B6D
   color: #a0a4b8;
   margin-top: 8px;
   margin-bottom: 24px;
+}
+
+.win-version {
+  font-size: 0.75rem !important;
+  color: #6b7280 !important;
+  margin-top: 8px !important;
+  opacity: 0.8;
 }
 
 /* ===== RESPONSIVE ===== */

@@ -90,6 +90,7 @@ class WaterSortGame {
       continueLevel: document.getElementById('continue-level'),
       menuTotalStars: document.getElementById('menu-total-stars'),
       menuCompleted: document.getElementById('menu-completed'),
+      menuVersion: document.getElementById('menu-version'),
       btnTheme: document.getElementById('btn-theme'),
       btnCb: document.getElementById('btn-cb'),
       progressFill: document.getElementById('progress-fill')
@@ -147,6 +148,11 @@ class WaterSortGame {
       this.dom.menuTotalStars.textContent = stats.totalStars;
       this.dom.menuCompleted.textContent = stats.completedLevels;
       this.dom.continueLevel.textContent = stats.currentLevel;
+
+      // Versão do jogo
+      if (this.dom.menuVersion && typeof GAME_VERSION_LABEL !== 'undefined') {
+        this.dom.menuVersion.textContent = GAME_VERSION_LABEL;
+      }
 
       // Se não há fases completadas, esconder botão continuar
       if (stats.completedLevels === 0) {
@@ -585,9 +591,11 @@ class WaterSortGame {
     // Atualizar informações
     const statsDiv = modal.querySelector('.win-stats');
     if (statsDiv) {
+      const versionLabel = (typeof GAME_VERSION_LABEL !== 'undefined') ? GAME_VERSION_LABEL : '';
       statsDiv.innerHTML = `
         <p><strong>Movimentos:</strong> ${this.movementCount} / ${this.optimalMoves}</p>
         <p><strong>Eficiência:</strong> ${((this.optimalMoves / this.movementCount) * 100).toFixed(0)}%</p>
+        <p class="win-version">${versionLabel}</p>
       `;
     }
 
