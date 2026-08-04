@@ -864,3 +864,43 @@ body.cb-mode .color-6 { background-image: repeating-linear-gradient(0deg, #06B6D
   80% { transform: scale(0.9) rotate(-4deg); }
   100% { transform: scale(1) rotate(0deg); opacity: 1; }
 }
+
+/* Animação de "encher" o tubo ao iniciar fase */
+.game-board.filling .liquid-layer {
+  animation: fillUp 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.game-board.filling .tube:nth-child(2) .liquid-layer { animation-delay: 0.05s; }
+.game-board.filling .tube:nth-child(3) .liquid-layer { animation-delay: 0.1s; }
+.game-board.filling .tube:nth-child(4) .liquid-layer { animation-delay: 0.15s; }
+.game-board.filling .tube:nth-child(5) .liquid-layer { animation-delay: 0.2s; }
+.game-board.filling .tube:nth-child(6) .liquid-layer { animation-delay: 0.25s; }
+.game-board.filling .tube:nth-child(7) .liquid-layer { animation-delay: 0.3s; }
+
+@keyframes fillUp {
+  0% { transform: translateY(110%); opacity: 0; }
+  60% { opacity: 1; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+/* Partículas ao completar um tubo */
+.tube-particle {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9996;
+  animation: particleBurst 0.85s ease-out forwards;
+}
+
+@keyframes particleBurst {
+  0% { transform: translate(0, 0) scale(0.4); opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(1.1); opacity: 0; }
+}
+
+/* Tema automático já tratado via data-theme + prefers-color-scheme */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    /* fallback caso JS nao rode */
+  }
+}

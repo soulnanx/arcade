@@ -41,8 +41,53 @@ class SoundEngine {
   }
 
   pour() {
-    this.playTone(480, 'sine', 0.15, 0.1);
-    setTimeout(() => this.playTone(600, 'sine', 0.12, 0.08), 80);
+    // Som "líquido": glide descendente + pequeno "glup" final
+    if (!this.enabled) return;
+    this.init();
+    const now = this.ctx.currentTime;
+
+    // Glide de descida (água caindo)
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(720, now);
+    osc.frequency.exponentialRampToValueAtTime(280, now + 0.18);
+    gain.gain.setValueAtTime(0.12, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(now + 0.24);
+
+    // "Glup" final (bolha)
+    setTimeout(() => {
+      this.playTone(180, 'sine', 0.09, 0.09);
+    }, 160);
+  }
+
+  fill() {
+    // Som de "encher" tubo ao iniciar fase (subida suave)
+    if (!this.enabled) return;
+    this.init();
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(200, now);
+    osc.frequency.exponentialRampToValueAtTime(520, now + 0.35);
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.08, now + 0.1);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(now + 0.42);
+  }
+
+  success() {
+    // Pequeno "ding" ao completar um tubo
+    this.playTone(880, 'triangle', 0.12, 0.08);
+    setTimeout(() => this.playTone(1174.66, 'triangle', 0.14, 0.07), 70);
   }
 
   win() {
@@ -325,7 +370,7 @@ class WaterSortGame {
     // Calcular movimentos ótimos (aproximação)
     this.optimalMoves = this.estimateOptimalMoves();
     
-    // Transição de fase (fade-out/in)
+    // Transição de fase (fade-out/in) + som de encher
     const board = this.dom.board;
     board.classList.remove('board-enter');
     board.classList.add('board-exit');
@@ -333,6 +378,9 @@ class WaterSortGame {
       this.render();
       board.classList.remove('board-exit');
       board.classList.add('board-enter');
+      board.classList.add('filling');
+      this.sound.fill();
+      setTimeout(() => board.classList.remove('filling'), 650);
     }, 180);
     this.updateMovementCounter();
     this.updateProgress();
@@ -414,6 +462,15 @@ class WaterSortGame {
     if (typeof PerformanceManager !== 'undefined') {
       PerformanceManager.vibrate(15);
     }
+    // Detecta se o destino ficou 100% de uma cor (tubo completo)
+    const destinoCompleto = destino.length === this.capacity && destino.every(c => c === destino[0]);
+    if (destinoCompleto) {
+      this._justCompleted = destinoIndex;
+      this.sound.success();
+      if (typeof PerformanceManager !== 'undefined') {
+        PerformanceManager.vibratePattern([12, 20, 12]);
+      }
+    }
     // Guarda o destino para animar apos o render do handleTubeClick
     this._lastPouredDest = destinoIndex;
     return true;
@@ -468,6 +525,12 @@ class WaterSortGame {
         if (top) top.classList.add('pour-in');
       }
       this._lastPouredDest = null;
+    }
+    // Partículas ao completar um tubo
+    if (typeof this._justCompleted === 'number') {
+      const completedEl = this.dom.board.children[this._justCompleted];
+      if (completedEl) this.spawnTubeParticles(completedEl);
+      this._justCompleted = null;
     }
   }
 
@@ -624,11 +687,37 @@ class WaterSortGame {
     });
   }
 
+  spawnTubeParticles(tubeEl) {
+    const colors = ['#10B981', '#34D399', '#6EE7B7', '#FFD700'];
+    const rect = tubeEl.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    for (let i = 0; i < 14; i++) {
+      const pp = document.createElement('div');
+      pp.className = 'tube-particle';
+      const angle = (Math.PI * 2 * i) / 14 + Math.random() * 0.4;
+      const dist = 30 + Math.random() * 40;
+      pp.style.left = cx + 'px';
+      pp.style.top = 'auto';
+      pp.style.background = colors[Math.floor(Math.random() * colors.length)];
+      pp.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+      pp.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+      document.body.appendChild(pp);
+      setTimeout(() => pp.remove(), 900);
+    }
+  }
+
   loadPreferences() {
     const theme = localStorage.getItem('bottle-color-theme');
     if (theme === 'light') {
       document.documentElement.setAttribute('data-theme', 'light');
       if (this.dom.btnTheme) this.dom.btnTheme.textContent = '🌙';
+    } else if (theme === 'dark') {
+      document.documentElement.removeAttribute('data-theme');
+      if (this.dom.btnTheme) this.dom.btnTheme.textContent = '🌙';
+    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+      document.documentElement.setAttribute('data-theme', 'light');
+      if (this.dom.btnTheme) this.dom.btnTheme.textContent = '☀️';
     }
     const cb = localStorage.getItem('bottle-color-cb');
     if (cb === '1') {
