@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920" width="1080" height="1920">
+  <rect width="1080" height="1920" fill="#1a1a20"/>
+
+  <!-- Header -->
+  <rect x="0" y="0" width="1080" height="160" fill="#262630"/>
+  <text x="40" y="70" font-family="sans-serif" font-size="48" fill="#ffffff" font-weight="bold">←</text>
+  <text x="120" y="80" font-family="sans-serif" font-size="40" fill="#ffffff" font-weight="bold">Fase 1</text>
+  <text x="120" y="125" font-family="sans-serif" font-size="28" fill="#a0a4b8">Movimentos: 3</text>
+
+  <rect x="900" y="40" width="60" height="60" rx="10" fill="#3B82F6"/>
+  <text x="930" y="80" font-family="sans-serif" font-size="32" fill="#ffffff" text-anchor="middle">🔊</text>
+
+  <!-- Tubes -->
+  <g transform="translate(0, 400)">
+    <!-- Tube 1 -->
+    <rect x="140" y="0" width="120" height="400" rx="50" fill="none" stroke="#8e92a8" stroke-width="12"/>
+    <rect x="152" y="100" width="96" height="288" rx="40" fill="#3B82F6"/>
+    <rect x="152" y="180" width="96" height="208" rx="35" fill="#EF4444"/>
+    <rect x="152" y="260" width="96" height="128" rx="30" fill="#10B981"/>
+
+    <!-- Tube 2 (selected) -->
+    <rect x="320" y="-30" width="120" height="400" rx="50" fill="none" stroke="#3B82F6" stroke-width="16"/>
+    <rect x="332" y="100" width="96" height="288" rx="40" fill="#EF4444"/>
+
+    <!-- Tube 3 -->
+    <rect x="500" y="0" width="120" height="400" rx="50" fill="none" stroke="#8e92a8" stroke-width="12"/>
+    <rect x="512" y="150" width="96" height="238" rx="35" fill="#10B981"/>
+    <rect x="512" y="250" width="96" height="138" rx="30" fill="#3B82F6"/>
+
+    <!-- Tube 4 -->
+    <rect x="680" y="0" width="120" height="400" rx="50" fill="none" stroke="#8e92a8" stroke-width="12"/>
+    <rect x="692" y="200" width="96" height="188" rx="30" fill="#F59E0B"/>
+
+    <!-- Tube 5 -->
+    <rect x="860" y="0" width="120" height="400" rx="50" fill="none" stroke="#8e92a8" stroke-width="12"/>
+    <rect x="872" y="250" width="96" height="138" rx="30" fill="#8B5CF6"/>
+  </g>
+
+  <!-- Controls -->
+  <g transform="translate(0, 1300)">
+    <rect x="60" y="0" width="280" height="100" rx="16" fill="#262630"/>
+    <text x="200" y="62" font-family="sans-serif" font-size="36" fill="#ffffff" text-anchor="middle">Desfazer</text>
+
+    <rect x="400" y="0" width="280" height="100" rx="16" fill="#262630"/>
+    <text x="540" y="62" font-family="sans-serif" font-size="36" fill="#ffffff" text-anchor="middle">Reiniciar</text>
+
+    <rect x="740" y="0" width="280" height="100" rx="16" fill="#3B82F6"/>
+    <text x="880" y="62" font-family="sans-serif" font-size="36" fill="#ffffff" text-anchor="middle" font-weight="bold">Nova Fase</text>
+  </g>
+
+  <text x="540" y="1550" font-family="sans-serif" font-size="32" fill="#a0a4b8" text-anchor="middle">Selecione um tubo e derrame a cor</text>
+</svg>

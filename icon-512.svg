@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/3/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a20"/>
+      <stop offset="100%" style="stop-color:#262630"/>
+    </linearGradient>
+    <linearGradient id="liquid" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#3B82F6"/>
+      <stop offset="100%" style="stop-color:#2563EB"/>
+    </linearGradient>
+    <linearGradient id="liquid2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#EF4444"/>
+      <stop offset="100%" style="stop-color:#DC2626"/>
+    </linearGradient>
+    <linearGradient id="liquid3" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#10B981"/>
+      <stop offset="100%" style="stop-color:#059669"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="100" fill="url(#bg)"/>
+  <!-- Bottle 1 -->
+  <rect x="145" y="120" width="95" height="280" rx="45" fill="none" stroke="#8e92a8" stroke-width="20"/>
+  <rect x="152" y="200" width="81" height="195" rx="35" fill="url(#liquid)"/>
+  <rect x="152" y="310" width="81" height="85" rx="30" fill="url(#liquid2)"/>
+  <!-- Bottle 2 -->
+  <rect x="275" y="120" width="95" height="280" rx="45" fill="none" stroke="#8e92a8" stroke-width="20"/>
+  <rect x="282" y="255" width="81" height="140" rx="30" fill="url(#liquid3)"/>
+  <rect x="282" y="335" width="81" height="60" rx="25" fill="url(#liquid)"/>
+</svg>

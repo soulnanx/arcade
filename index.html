@@ -2,41 +2,155 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Water Sort Puzzle</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Bottle Color - Water Sort Puzzle</title>
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icon-192.svg">
+  <link rel="apple-touch-icon" href="icon-192.svg">
   <meta name="theme-color" content="#1e1e24">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Bottle Color">
+  <meta name="description" content="Jogo de lógica e ordenação de cores. Organize os tubos!">
 </head>
 <body>
-  <header class="game-header">
-    <div class="level-info">
-      <h1>Fase <span id="level-display">1</span></h1>
-    </div>
-    <div class="header-controls">
-      <button id="btn-sound" class="btn-icon" aria-label="Alternar Som" title="Alternar Som">🔊</button>
-      <button id="btn-undo" class="btn" aria-label="Desfazer movimento">Desfazer</button>
-      <button id="btn-restart" class="btn" aria-label="Reiniciar fase">Reiniciar</button>
-      <button id="btn-new-game" class="btn btn-primary" aria-label="Nova fase">Nova Fase</button>
-    </div>
-  </header>
-
-  <main class="game-board" id="board" role="region" aria-label="Tabuleiro de Tubos"></main>
-
-  <!-- Modal de Vitória -->
-  <div id="win-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="win-title">
-    <div class="modal-content">
-      <h2 id="win-title">Fase Concluída!</h2>
-      <p>Todos os tubos foram perfeitamente organizados.</p>
-      <button id="btn-next-level" class="btn btn-primary btn-large">Próxima Fase</button>
+  <!-- Splash Screen -->
+  <div id="splash-screen">
+    <div class="splash-content">
+      <div class="splash-logo">
+        <span class="bottle">🍶</span>
+        <h1>Bottle Color</h1>
+      </div>
+      <div class="splash-loader">
+        <div class="splash-drop"></div>
+      </div>
+      <p class="splash-text">Carregando...</p>
     </div>
   </div>
 
+  <!-- Menu Principal -->
+  <div id="main-menu" class="screen hidden">
+    <header class="menu-header">
+      <h1 class="menu-title">Bottle Color</h1>
+      <div class="menu-stats">
+        <div class="stat-item">
+          <span class="stat-value" id="menu-total-stars">0</span>
+          <span class="stat-label">⭐ Estrelas</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="menu-completed">0</span>
+          <span class="stat-label">🏆 Fases</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="menu-body">
+      <div class="continue-section">
+        <button id="btn-continue" class="btn btn-primary btn-large">▶ Continuar (Fase <span id="continue-level">1</span>)</button>
+      </div>
+      <h2 class="levels-title">Selecione uma Fase</h2>
+      <div id="level-grid" class="level-grid"></div>
+    </main>
+  </div>
+
+  <!-- Tela do Jogo -->
+  <div id="game-screen" class="screen hidden">
+    <header class="game-header">
+      <div class="level-info">
+        <button id="btn-back-menu" class="btn-icon" aria-label="Voltar ao menu" title="Voltar ao menu">←</button>
+        <h1>Fase <span id="level-display">1</span></h1>
+        <div class="movement-info">
+          <span class="movement-label">Movimentos:</span>
+          <span id="movement-counter" class="movement-counter">0</span>
+        </div>
+      </div>
+      <div class="header-controls">
+        <button id="btn-sound" class="btn-icon" aria-label="Alternar Som" title="Alternar Som">🔊</button>
+        <button id="btn-undo" class="btn" aria-label="Desfazer movimento">Desfazer</button>
+        <button id="btn-restart" class="btn" aria-label="Reiniciar fase">Reiniciar</button>
+        <button id="btn-new-game" class="btn btn-primary" aria-label="Nova fase">Nova Fase</button>
+      </div>
+    </header>
+
+    <main class="game-board" id="board" role="region" aria-label="Tabuleiro de Tubos"></main>
+
+    <!-- Modal de Vitória -->
+    <div id="win-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="win-title">
+      <div class="modal-content">
+        <h2 id="win-title">Fase Concluída!</h2>
+        <div class="stars-container"></div>
+        <div class="win-stats"></div>
+        <p class="win-message">Todos os tubos foram perfeitamente organizados.</p>
+        <button id="btn-next-level" class="btn btn-primary btn-large">Próxima Fase</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Install Prompt (PWA) -->
+  <div id="install-prompt" class="install-prompt hidden">
+    <div class="install-content">
+      <span class="install-icon">📱</span>
+      <div class="install-text">
+        <strong>Instalar Bottle Color?</strong>
+        <span>Adicione ao seu celular para jogar offline</span>
+      </div>
+      <div class="install-actions">
+        <button id="btn-install-yes" class="btn btn-primary btn-small">Instalar</button>
+        <button id="btn-install-no" class="btn btn-small">Agora não</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="storage.js"></script>
+  <script src="performance.js"></script>
   <script src="game.js"></script>
   <script>
+    // Install Prompt Handler
+    let deferredPrompt = null;
+    const installPrompt = document.getElementById('install-prompt');
+    const btnInstallYes = document.getElementById('btn-install-yes');
+    const btnInstallNo = document.getElementById('btn-install-no');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+
+      setTimeout(() => {
+        if (!localStorage.getItem('bottle-color-install-dismissed')) {
+          installPrompt.classList.remove('hidden');
+        }
+      }, 3000);
+    });
+
+    btnInstallYes.addEventListener('click', async () => {
+      installPrompt.classList.add('hidden');
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          console.log('PWA instalado');
+        }
+        deferredPrompt = null;
+      }
+    });
+
+    btnInstallNo.addEventListener('click', () => {
+      installPrompt.classList.add('hidden');
+      localStorage.setItem('bottle-color-install-dismissed', 'true');
+    });
+
+    // Registrar Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(() => {});
+        navigator.serviceWorker.register('./sw.js')
+          .then((registration) => {
+            console.log('SW registrado:', registration.scope);
+          })
+          .catch((error) => {
+            console.log('SW falhou:', error);
+          });
       });
     }
   </script>

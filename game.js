@@ -66,6 +66,10 @@ class WaterSortGame {
     this.history = [];
     this.level = 1;
     this.sound = new SoundEngine();
+    this.movementCount = 0;
+    this.optimalMoves = null;
+    this.hasUndone = false;
+    this.maxLevelDisplay = 50; // Máximo de fases no grid
 
     this.dom = {
       board: document.getElementById('board'),
@@ -75,11 +79,123 @@ class WaterSortGame {
       btnRestart: document.getElementById('btn-restart'),
       btnNewGame: document.getElementById('btn-new-game'),
       btnNextLevel: document.getElementById('btn-next-level'),
-      btnSound: document.getElementById('btn-sound')
+      btnSound: document.getElementById('btn-sound'),
+      movementCounter: document.getElementById('movement-counter'),
+      btnBackMenu: document.getElementById('btn-back-menu'),
+      splashScreen: document.getElementById('splash-screen'),
+      mainMenu: document.getElementById('main-menu'),
+      gameScreen: document.getElementById('game-screen'),
+      levelGrid: document.getElementById('level-grid'),
+      btnContinue: document.getElementById('btn-continue'),
+      continueLevel: document.getElementById('continue-level'),
+      menuTotalStars: document.getElementById('menu-total-stars'),
+      menuCompleted: document.getElementById('menu-completed')
     };
 
     this.bindEvents();
-    this.startNewLevel(1);
+    this.initApp();
+  }
+
+  /**
+   * Inicializar aplicação (mostrar splash, depois menu)
+   */
+  initApp() {
+    // Esconder splash após 1.5s
+    setTimeout(() => {
+      this.hideSplash();
+      this.showMainMenu();
+    }, 1500);
+  }
+
+  /**
+   * Esconder splash screen
+   */
+  hideSplash() {
+    if (this.dom.splashScreen) {
+      this.dom.splashScreen.classList.add('hidden');
+    }
+  }
+
+  /**
+   * Mostrar menu principal
+   */
+  showMainMenu() {
+    this.dom.mainMenu.classList.remove('hidden');
+    this.dom.gameScreen.classList.add('hidden');
+    this.renderMenuStats();
+    this.renderLevelGrid();
+  }
+
+  /**
+   * Mostrar tela do jogo
+   */
+  showGameScreen() {
+    this.dom.gameScreen.classList.remove('hidden');
+    this.dom.mainMenu.classList.add('hidden');
+  }
+
+  /**
+   * Renderizar estatísticas do menu
+   */
+  renderMenuStats() {
+    const stats = progressManager.getGlobalStats();
+    if (stats) {
+      this.dom.menuTotalStars.textContent = stats.totalStars;
+      this.dom.menuCompleted.textContent = stats.completedLevels;
+      this.dom.continueLevel.textContent = stats.currentLevel;
+
+      // Se não há fases completadas, esconder botão continuar
+      if (stats.completedLevels === 0) {
+        this.dom.btnContinue.classList.add('hidden');
+      } else {
+        this.dom.btnContinue.classList.remove('hidden');
+      }
+    }
+  }
+
+  /**
+   * Renderizar grid de fases
+   */
+  renderLevelGrid() {
+    const grid = this.dom.levelGrid;
+    if (!grid) return;
+
+    grid.innerHTML = '';
+
+    for (let level = 1; level <= this.maxLevelDisplay; level++) {
+      const levelProgress = progressManager.getLevelProgress(level);
+      const isCompleted = levelProgress.completed;
+      const stars = levelProgress.stars || 0;
+      const isLocked = level > progressManager.getGlobalStats().currentLevel;
+
+      const levelCard = document.createElement('button');
+      levelCard.className = `level-card ${isCompleted ? 'completed' : ''} ${isLocked ? 'locked' : ''}`;
+      levelCard.setAttribute('data-level', level);
+      levelCard.setAttribute('aria-label', `Fase ${level}${isLocked ? ' (Bloqueada)' : ''}`);
+
+      // Stars HTML
+      let starsHtml = '';
+      for (let i = 0; i < 3; i++) {
+        starsHtml += `<span class="level-star ${i < stars ? 'earned' : 'empty'}">★</span>`;
+      }
+
+      levelCard.innerHTML = `
+        <div class="level-number">${isLocked ? '🔒' : level}</div>
+        <div class="level-stars">${starsHtml}</div>
+      `;
+
+      if (!isLocked) {
+        levelCard.addEventListener('click', () => {
+          this.sound.click();
+          this.showGameScreen();
+          this.startNewLevel(level);
+        });
+      } else {
+        levelCard.disabled = true;
+      }
+
+      grid.appendChild(levelCard);
+    }
   }
 
   bindEvents() {
@@ -94,6 +210,24 @@ class WaterSortGame {
       const isEnabled = this.sound.toggle();
       this.dom.btnSound.textContent = isEnabled ? '🔊' : '🔇';
     });
+
+    // Botão voltar ao menu
+    if (this.dom.btnBackMenu) {
+      this.dom.btnBackMenu.addEventListener('click', () => {
+        this.sound.click();
+        this.showMainMenu();
+      });
+    }
+
+    // Botão continuar (menu)
+    if (this.dom.btnContinue) {
+      this.dom.btnContinue.addEventListener('click', () => {
+        this.sound.click();
+        this.showGameScreen();
+        const currentLevel = progressManager.getGlobalStats().currentLevel;
+        this.startNewLevel(currentLevel);
+      });
+    }
   }
 
   /**
@@ -159,16 +293,36 @@ class WaterSortGame {
     this.dom.levelDisplay.textContent = this.level;
     this.selectedTubeIndex = null;
     this.history = [];
+    this.movementCount = 0;
+    this.hasUndone = false;
     this.tubes = this.generateLevel(this.level);
     this.initialState = JSON.parse(JSON.stringify(this.tubes));
+    
+    // Calcular movimentos ótimos (aproximação)
+    this.optimalMoves = this.estimateOptimalMoves();
+    
     this.render();
+    this.updateMovementCounter();
+  }
+
+  /**
+   * Estimar movimentos ótimos para a fase
+   * Baseado no número de cores e complexidade
+   */
+  estimateOptimalMoves() {
+    const numColors = this.tubes.filter(tube => tube.length > 0).length;
+    // Fórmula heurística: cores * 2 (aproximação)
+    return Math.max(numColors - 1, 1);
   }
 
   restartLevel() {
     this.tubes = JSON.parse(JSON.stringify(this.initialState));
     this.selectedTubeIndex = null;
     this.history = [];
+    this.movementCount = 0;
+    this.hasUndone = false;
     this.render();
+    this.updateMovementCounter();
   }
 
   /**
@@ -219,6 +373,9 @@ class WaterSortGame {
       destino.push(corTransferida);
     }
 
+    // Incrementar contador de movimentos
+    this.movementCount++;
+    this.updateMovementCounter();
     this.sound.pour();
     return true;
   }
@@ -255,8 +412,37 @@ class WaterSortGame {
     if (this.history.length === 0) return;
     this.tubes = this.history.pop();
     this.selectedTubeIndex = null;
+    this.movementCount = Math.max(0, this.movementCount - 1);
+    this.hasUndone = true;
     this.sound.click();
     this.render();
+    this.updateMovementCounter();
+  }
+
+  /**
+   * Calcular número de estrelas baseado em movimentos
+   */
+  calculateStars() {
+    if (!this.optimalMoves) return 0;
+
+    const ratio = this.movementCount / this.optimalMoves;
+
+    if (ratio <= 1) return 3; // Perfeito
+    if (ratio <= 1.5) return 2; // Bom
+    if (ratio <= 2) return 1; // Aceitável
+    return 0; // Muitos movimentos
+  }
+
+  /**
+   * Atualizar contador de movimentos na UI
+   */
+  updateMovementCounter() {
+    if (this.dom.movementCounter) {
+      this.dom.movementCounter.textContent = this.movementCount;
+      // Opcional: adicionar animação
+      this.dom.movementCounter.classList.add('updated');
+      setTimeout(() => this.dom.movementCounter.classList.remove('updated'), 200);
+    }
   }
 
   checkWinCondition() {
@@ -269,10 +455,52 @@ class WaterSortGame {
 
     if (isWon) {
       this.sound.win();
+      
+      // Calcular stars
+      const stars = this.calculateStars();
+      
+      // Salvar progresso
+      progressManager.saveLevelProgress(
+        this.level,
+        stars,
+        this.movementCount,
+        this.optimalMoves
+      );
+
       setTimeout(() => {
-        this.dom.winModal.classList.remove('hidden');
+        this.showWinModal(stars);
       }, 300);
     }
+  }
+
+  /**
+   * Mostrar modal de vitória com stars
+   */
+  showWinModal(stars) {
+    const modal = this.dom.winModal;
+    
+    // Atualizar stars no modal
+    const starsContainer = modal.querySelector('.stars-container');
+    if (starsContainer) {
+      starsContainer.innerHTML = '';
+      for (let i = 0; i < 3; i++) {
+        const star = document.createElement('span');
+        star.className = 'star ' + (i < stars ? 'earned' : 'empty');
+        star.textContent = '★';
+        starsContainer.appendChild(star);
+      }
+    }
+
+    // Atualizar informações
+    const statsDiv = modal.querySelector('.win-stats');
+    if (statsDiv) {
+      statsDiv.innerHTML = `
+        <p><strong>Movimentos:</strong> ${this.movementCount} / ${this.optimalMoves}</p>
+        <p><strong>Eficiência:</strong> ${((this.optimalMoves / this.movementCount) * 100).toFixed(0)}%</p>
+      `;
+    }
+
+    modal.classList.remove('hidden');
   }
 
   render() {
