@@ -89,9 +89,13 @@ class WaterSortGame {
       btnContinue: document.getElementById('btn-continue'),
       continueLevel: document.getElementById('continue-level'),
       menuTotalStars: document.getElementById('menu-total-stars'),
-      menuCompleted: document.getElementById('menu-completed')
+      menuCompleted: document.getElementById('menu-completed'),
+      btnTheme: document.getElementById('btn-theme'),
+      btnCb: document.getElementById('btn-cb'),
+      progressFill: document.getElementById('progress-fill')
     };
 
+    this.loadPreferences();
     this.bindEvents();
     this.initApp();
   }
@@ -211,6 +215,20 @@ class WaterSortGame {
       this.dom.btnSound.textContent = isEnabled ? '🔊' : '🔇';
     });
 
+    if (this.dom.btnTheme) {
+      this.dom.btnTheme.addEventListener('click', () => {
+        this.sound.click();
+        this.toggleTheme();
+      });
+    }
+
+    if (this.dom.btnCb) {
+      this.dom.btnCb.addEventListener('click', () => {
+        this.sound.click();
+        this.toggleColorBlind();
+      });
+    }
+
     // Botão voltar ao menu
     if (this.dom.btnBackMenu) {
       this.dom.btnBackMenu.addEventListener('click', () => {
@@ -311,6 +329,7 @@ class WaterSortGame {
       board.classList.add('board-enter');
     }, 180);
     this.updateMovementCounter();
+    this.updateProgress();
   }
 
   /**
@@ -586,6 +605,9 @@ class WaterSortGame {
       tubeData.forEach(colorId => {
         const layerEl = document.createElement('div');
         layerEl.className = `liquid-layer color-${colorId}`;
+        if (tubeData.length === this.capacity && tubeData.every(cc => cc === tubeData[0])) {
+          tubeEl.classList.add('completed');
+        }
         tubeEl.appendChild(layerEl);
       });
 
@@ -593,6 +615,51 @@ class WaterSortGame {
       this.dom.board.appendChild(tubeEl);
     });
   }
+
+  loadPreferences() {
+    const theme = localStorage.getItem('bottle-color-theme');
+    if (theme === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+      if (this.dom.btnTheme) this.dom.btnTheme.textContent = '🌙';
+    }
+    const cb = localStorage.getItem('bottle-color-cb');
+    if (cb === '1') {
+      document.body.classList.add('cb-mode');
+      if (this.dom.btnCb) this.dom.btnCb.textContent = '✅';
+    }
+  }
+
+  toggleTheme() {
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    if (isLight) {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('bottle-color-theme', 'dark');
+      if (this.dom.btnTheme) this.dom.btnTheme.textContent = '🌙';
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light');
+      localStorage.setItem('bottle-color-theme', 'light');
+      if (this.dom.btnTheme) this.dom.btnTheme.textContent = '☀️';
+    }
+  }
+
+  toggleColorBlind() {
+    const active = document.body.classList.toggle('cb-mode');
+    localStorage.setItem('bottle-color-cb', active ? '1' : '0');
+    if (this.dom.btnCb) this.dom.btnCb.textContent = active ? '✅' : '👁️';
+  }
+
+  updateProgress() {
+    if (!this.dom.progressFill) return;
+    const total = this.tubes.length;
+    let completed = 0;
+    for (const tube of this.tubes) {
+      if (tube.length === 0) { completed++; continue; }
+      if (tube.length === this.capacity && tube.every(cc => cc === tube[0])) completed++;
+    }
+    const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+    this.dom.progressFill.style.width = pct + '%';
+  }
+
 }
 
 window.addEventListener('DOMContentLoaded', () => {
