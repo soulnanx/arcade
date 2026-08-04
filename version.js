@@ -6,7 +6,7 @@
  *  - MINOR: novas funcionalidades (visual, fases, etc.)
  *  - PATCH: correções de bug / ajustes pequenos
  */
-const GAME_VERSION = '1.4.1';
+const GAME_VERSION = '1.5.0';
 const GAME_VERSION_LABEL = 'v' + GAME_VERSION;
 
 // Data do build (gerada no commit/push, mas aqui como fallback)
