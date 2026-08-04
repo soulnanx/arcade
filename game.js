@@ -407,6 +407,75 @@ class WaterSortGame {
   }
 
   /**
+   * ANIMAÇÃO DE DESPEJO (Opção A): tubo origem inclina e despeja filete de líquido
+   */
+  animatePour(origemIndex, destinoIndex) {
+    if (this._animating) return;
+    const originEl = this.dom.board.children[origemIndex];
+    const destEl = this.dom.board.children[destinoIndex];
+    if (!originEl || !destEl) {
+      this.pour(origemIndex, destinoIndex);
+      this.checkWinCondition();
+      return;
+    }
+    const origem = this.tubes[origemIndex];
+    if (origem.length === 0) {
+      this.pour(origemIndex, destinoIndex);
+      this.checkWinCondition();
+      return;
+    }
+
+    this._animating = true;
+
+    // Cor do filete (lê a cor computada da camada superior do tubo origem)
+    let colorHex = '#3B82F6';
+    const layers = originEl.querySelectorAll('.liquid-layer');
+    if (layers.length) {
+      const top = layers[layers.length - 1];
+      const bg = getComputedStyle(top).backgroundColor;
+      if (bg && bg !== 'rgba(0, 0, 0, 0)') colorHex = bg;
+    }
+
+    const oRect = originEl.getBoundingClientRect();
+    const dRect = destEl.getBoundingClientRect();
+    const pourRight = oRect.left < dRect.left;
+
+    // Inclina o tubo de origem em direção ao destino
+    originEl.classList.remove('selected');
+    originEl.classList.add('pouring');
+    originEl.classList.toggle('pour-right', pourRight);
+    originEl.classList.toggle('pour-left', !pourRight);
+
+    // Cria o filete de líquido (linha da boca da origem até a boca do destino)
+    const stream = document.createElement('div');
+    stream.className = 'pour-stream';
+    const oMouthX = oRect.left + oRect.width / 2;
+    const oMouthY = oRect.top + 4;
+    const dMouthX = dRect.left + dRect.width / 2;
+    const dMouthY = dRect.top + 4;
+    const dx = dMouthX - oMouthX;
+    const dy = dMouthY - oMouthY;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    stream.style.left = oMouthX + 'px';
+    stream.style.top = oMouthY + 'px';
+    stream.style.width = len + 'px';
+    stream.style.setProperty('--angle', angle + 'deg');
+    stream.style.background = colorHex;
+    document.body.appendChild(stream);
+
+    if (typeof PerformanceManager !== 'undefined') PerformanceManager.vibrate(15);
+
+    setTimeout(() => {
+      this.pour(origemIndex, destinoIndex);
+      this.checkWinCondition();
+      originEl.classList.remove('pouring', 'pour-right', 'pour-left');
+      if (stream.parentNode) stream.parentNode.removeChild(stream);
+      this._animating = false;
+    }, 380);
+  }
+
+  /**
    * VERIFICAÇÃO DE REGRA
    * Valida se a origem pode derramar no destino
    */
@@ -491,9 +560,8 @@ class WaterSortGame {
         this.selectedTubeIndex = null;
         this.sound.click();
       } else if (this.canPour(this.selectedTubeIndex, index)) {
-        this.pour(this.selectedTubeIndex, index);
+        this.animatePour(this.selectedTubeIndex, index);
         this.selectedTubeIndex = null;
-        this.checkWinCondition();
       } else {
         // Movimento inválido: shake no tubo de destino + vibração
         if (typeof PerformanceManager !== 'undefined') {
